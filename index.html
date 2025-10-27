@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>인물 퀴즈</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 30px;
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+  }
+
+  #quiz-container {
+    text-align: center; /* 내부 텍스트 중앙 */
+    width: 100%;
+    max-width: 500px;
+  }
+
+  #image {
+    max-width: 300px;
+    height: auto;
+    margin: 20px auto; /* 세로 간격 + 가로 중앙 */
+    display: block;
+  }
+
+  #question { font-size: 1.2em; margin: 10px 0; }
+  #answer { padding: 5px; font-size: 1em; }
+  #submit, #restart { padding: 5px 10px; font-size: 1em; margin-left: 5px; }
+  #timer { margin: 10px 0; font-weight: bold; }
+  #result { margin: 10px 0; font-size: 1.1em; color: #d00; }
+  </style>
+</head>
+<body>
+  <div id="main-container">
+    <h1>인물 퀴즈</h1>
+    <div id="quiz-container">
+      <img id="image" src="" alt="인물 이미지">
+      <div id="question"></div>
+      <input type="text" id="answer" placeholder="정답 입력">
+      <button id="submit">제출</button>
+      <button id="restart" style="display:none;">다시 시작</button>
+      <div id="timer"></div>
+      <div id="result"></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

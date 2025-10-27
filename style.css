@@ -1,0 +1,36 @@
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 30px;
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+  }
+
+  #main-container {
+    text-align: center;  /* 내부 텍스트 중앙 */
+    width: 100%;
+    max-width: 500px;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  #quiz-container {
+    text-align: center;
+  }
+
+  #image {
+    max-width: 300px;
+    height: auto;
+    margin: 20px auto;
+    display: block;
+  }
+
+  #question { font-size: 1.2em; margin: 10px 0; }
+  #answer { padding: 5px; font-size: 1em; }
+  #submit, #restart { padding: 5px 10px; font-size: 1em; margin-left: 5px; }
+  #timer { margin: 10px 0; font-weight: bold; }
+  #result { margin: 10px 0; font-size: 1.1em; color: #d00; }
+</style>
