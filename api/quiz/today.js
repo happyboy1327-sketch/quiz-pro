@@ -16,10 +16,10 @@ export default function handler(req, res) {
     { name: "레오나르도 다 빈치", hint: "모나리자 화가", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Leonardo_self.jpg" },
     { name: "나폴레옹", hint: "프랑스 황제", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Jacques-Louis_David_-_Napoleon_in_his_Study_-_Google_Art_Project_2.jpg" },
     { name: "신사임당", hint: "율곡 이이의 어머니", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Shin_Saimdang.jpg" },
-    { name: "안중근", hint: "이토 히로부미 저격 의사", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Ahn_Jung-geun_portrait.jpg" },
+    { name: "안중근", hint: "이토 히로부미 저격 의사", image: "https://commons.wikimedia.org/wiki/Special:FilePath/An_Jung-geun.jpg" },
     { name: "소크라테스", hint: "철학의 아버지", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Socrates_Louvre.jpg" },
     { name: "아리스토텔레스", hint: "플라톤의 제자", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Aristotle_Altemps_Inv8575.jpg" },
-    { name: "뉴턴", hint: "만유인력 법칙 발견", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Sir_Isaac_Newton_%281642-1727%29.jpg" }
+    { name: "뉴턴", hint: "만유인력 법칙 발견", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Portrait_of_Sir_Isaac_Newton,_1689_(brightened).jpg" }
   ];
   // ************* 🚨 수정된 부분 종료 🚨 *************
 
@@ -44,4 +44,5 @@ export default function handler(req, res) {
 
   res.status(200).json(selected);
 }
+
 
