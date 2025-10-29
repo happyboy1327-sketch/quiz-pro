@@ -1,52 +1,70 @@
 // ======================
-// 1️⃣ 후보군 (이순신 포함)
+// 1️⃣ 기존 + 신규 문제 저장소 (제거)
 // ======================
-const candidates = [
-  { name: "이순신", hint: "임진왜란 장군", image: "img/General-soonsin.jpg" },
-  { name: "세종대왕", hint: "한글 창제", image: "https://commons.wikimedia.org/wiki/Special:FilePath/King_Sejong_the_Great.jpg?width=400" },
-  { name: "정약용", hint: "목민심서 저술", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Jeong_Yak-yong.jpg?width=400" },
-  { name: "아인슈타인", hint: "상대성이론", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Albert_Einstein_Head.jpg?width=400" },
-  { name: "마리 퀴리", hint: "라듐 발견", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Marie_Curie_c1920.jpg?width=400" },
-  { name: "간디", hint: "인도 독립", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Portrait_Gandhi.jpg?width=400" },
-  { name: "나폴레옹", hint: "프랑스 황제", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Jacques-Louis_David_-_Napoleon_in_his_Study_-_Google_Art_Project_2.jpg?width=400" },
-  { name: "링컨", hint: "미국 남북전쟁 대통령", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Abraham_Lincoln_O-77_matte_collodion_print.jpg?width=400" },
-  { name: "피카소", hint: "입체파 화가", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Pablo_picasso_1.jpg?width=400" },
-  { name: "레오나르도 다 빈치", hint: "모나리자 화가", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Leonardo_self.jpg?width=400" }
-];
+// let candidates = JSON.parse(localStorage.getItem("candidates")) || []; // 제거// ======================
 
+// 2️⃣ API에서 신규 문제 불러오기
 // ======================
-// 2️⃣ 오늘 신규 5문제 생성
-// ======================
-function getDailyQuiz() {
-  const today = new Date();
-  let seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
+// *수정*: 매 호출마다 5문제를 가져오도록 lastUpdate, candidates, localStorage 로직 제거
+async function fetchNewQuestions() {
+  try {
+    const res = await fetch("/api/quiz/today");
+    if (!res.ok) throw new Error("❌ API 불러오기 실패");
+    const newQuestions = await res.json();
 
-  function seededRandom() {
-    const x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
+    // 🔸 URL 포맷 정리
+    const formatted = newQuestions.map(q => ({
+      ...q,
+      image: q.image.startsWith("https://commons.wikimedia.org/wiki/Special:FilePath/")
+        ? q.image
+        : `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(q.image)}?width=400`
+    }));
+
+    console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
+    return formatted; // 5문제 반환
+  } catch (err) {
+    console.error("🚨 API 로드 오류:", err);
+    return []; // 오류 시 빈 배열 반환
   }
-
-  const temp = [...candidates];
-  const selected = [];
-  while (selected.length < 5 && temp.length > 0) {
-    const idx = Math.floor(seededRandom() * temp.length);
-    selected.push(temp.splice(idx,1)[0]);
-  }
-  return selected;
 }
 
 // ======================
-// 3️⃣ 오늘의 문제 세트
+// 3️⃣ 무작위 5문제 추출 (제거)
 // ======================
-let quizData = getDailyQuiz();
+/*
+// function getRandomQuiz() { ... } 제거
+*/
 
 // ======================
-// 4️⃣ HTML 요소
+// 4️⃣ 초기화 및 재시작
 // ======================
+let quizData = [];
 let currentQuiz = 0;
 let score = 0;
 let timer;
 
+// *추가*: API 호출을 통해 새로운 5문제를 가져와 퀴즈 시작
+async function startNewQuizSet() {
+  // 💾 데이터는 절대로 유실되지 않도록: 기존 데이터를 덮어쓰기 전에 새 데이터를 API로 부터 가져옵니다.
+  quizData = await fetchNewQuestions();
+  currentQuiz = 0;
+  score = 0;
+
+  if (quizData.length > 0) {
+    loadQuiz();
+  } else {
+    alert("API로부터 문제를 불러오지 못했습니다. 다시 시도해 주세요.");
+  }
+}
+
+// *수정*: initQuiz 대신 startNewQuizSet 호출
+async function initQuiz() {
+  await startNewQuizSet();
+}
+
+// ======================
+// 5️⃣ 이하 퀴즈 로직 동일
+// ======================
 const imageEl = document.getElementById("image");
 const questionEl = document.getElementById("question");
 const inputEl = document.getElementById("answer");
@@ -55,26 +73,21 @@ const resultEl = document.getElementById("result");
 const timerEl = document.getElementById("timer");
 const restartBtn = document.getElementById("restart");
 
-// ======================
-// 5️⃣ 문제 로드
-// ======================
 function loadQuiz() {
   clearInterval(timer);
   const person = quizData[currentQuiz];
+  if (!person) return alert("문제가 충분하지 않아요!");
 
-  // 이미지 로드 실패 시 경고 (퀴즈 진행 중만)
   imageEl.onerror = function() {
     alert(`⚠️ 이미지 로드 실패: ${person.name}`);
     this.src = "";
   };
   imageEl.src = person.image;
-
   questionEl.textContent = `힌트: ${person.hint}`;
   inputEl.value = "";
   resultEl.textContent = "";
   startTimer(15);
 
-  // 요소 표시
   imageEl.style.display = "block";
   questionEl.style.display = "block";
   inputEl.style.display = "inline";
@@ -83,13 +96,9 @@ function loadQuiz() {
   restartBtn.style.display = "none";
 }
 
-// ======================
-// 6️⃣ 타이머
-// ======================
 function startTimer(seconds) {
   let timeLeft = seconds;
   timerEl.textContent = `⏰ 남은 시간: ${timeLeft}초`;
-
   timer = setInterval(() => {
     timeLeft--;
     timerEl.textContent = `⏰ 남은 시간: ${timeLeft}초`;
@@ -100,14 +109,8 @@ function startTimer(seconds) {
   }, 1000);
 }
 
-// ======================
-// 7️⃣ 제출 버튼
-// ======================
 submitBtn.addEventListener("click", checkAnswer);
 
-// ======================
-// 8️⃣ 정답 확인
-// ======================
 function checkAnswer() {
   clearInterval(timer);
   const answer = inputEl.value.trim();
@@ -128,9 +131,6 @@ function checkAnswer() {
   }
 }
 
-// ======================
-// 9️⃣ 결과 표시 및 다시 시작 버튼
-// ======================
 function showResults() {
   questionEl.textContent = `퀴즈 종료! 점수: ${score}/${quizData.length} 💕`;
   imageEl.style.display = "none";
@@ -138,22 +138,10 @@ function showResults() {
   submitBtn.style.display = "none";
   timerEl.style.display = "none";
   resultEl.style.display = "block";
-  resultEl.textContent = ""; // 정답 결과는 이미 체크 시 표시됨
   restartBtn.style.display = "inline";
 }
 
-// ======================
-// 10️⃣ 다시 시작 버튼
-// ======================
-restartBtn.addEventListener("click", () => {
-  quizData = getDailyQuiz(); // 새로운 5문제 생성
-  currentQuiz = 0;
-  score = 0;
-  loadQuiz();
-});
+// *수정*: 재시작 버튼 클릭 시 API 호출 및 새로운 퀴즈 세트 시작
+restartBtn.addEventListener("click", startNewQuizSet);
 
-// ======================
-// 11️⃣ 페이지 로드 시 시작
-// ======================
-window.addEventListener("load", loadQuiz);
-
+window.addEventListener("load", initQuiz);
