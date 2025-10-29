@@ -1,72 +1,13 @@
 // ======================
-// 1️⃣ 기존 + 신규 문제 저장소 (제거)
-// ======================
-// let candidates = JSON.parse(localStorage.getItem("candidates")) || []; // 제거// ======================
-
-// ======================
-// ======================
-// 2️⃣ API에서 신규 문제 불러오기
-// ======================
-async function fetchNewQuestions() {
-  try {
-    const res = await fetch("/api/quiz/today");
-    if (!res.ok) throw new Error("❌ API 불러오기 실패");
-    const newQuestions = await res.json();
-
-    // 🔸 URL 포맷 정리
-    const formatted = newQuestions.map(q => ({
-      ...q,
-      // *수정*: today.js에서 ?width=400을 제거했으므로, 
-      // 클라이언트에서 다시 ?width=400을 붙여서 썸네일 로딩을 시도합니다.
-      // encodeURIComponent는 파일 경로 전체가 아닌 파일명만 필요할 때 사용하므로 제거합니다.
-      image: q.image 
-        ? `${q.image}`
-        : null // 이미지가 없다면 null로 처리
-    }));
-
-    console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
-    return formatted; // 5문제 반환
-  } catch (err) {
-    console.error("🚨 API 로드 오류:", err);
-    return []; // 오류 시 빈 배열 반환
-  }
-}
-// ======================
-// 3️⃣ 무작위 5문제 추출 (제거)
-// ======================
-/*
-// function getRandomQuiz() { ... } 제거
-*/
-
-// ======================
-// 4️⃣ 초기화 및 재시작
+// 퀴즈 상태 변수
 // ======================
 let quizData = [];
 let currentQuiz = 0;
 let score = 0;
 let timer;
 
-// *추가*: API 호출을 통해 새로운 5문제를 가져와 퀴즈 시작
-async function startNewQuizSet() {
-  // 💾 데이터는 절대로 유실되지 않도록: 기존 데이터를 덮어쓰기 전에 새 데이터를 API로 부터 가져옵니다.
-  quizData = await fetchNewQuestions();
-  currentQuiz = 0;
-  score = 0;
-
-  if (quizData.length > 0) {
-    loadQuiz();
-  } else {
-    alert("API로부터 문제를 불러오지 못했습니다. 다시 시도해 주세요.");
-  }
-}
-
-// *수정*: initQuiz 대신 startNewQuizSet 호출
-async function initQuiz() {
-  await startNewQuizSet();
-}
-
 // ======================
-// 5️⃣ 이하 퀴즈 로직 동일
+// DOM 요소
 // ======================
 const imageEl = document.getElementById("image");
 const questionEl = document.getElementById("question");
@@ -76,30 +17,92 @@ const resultEl = document.getElementById("result");
 const timerEl = document.getElementById("timer");
 const restartBtn = document.getElementById("restart");
 
+// ======================
+// 2️⃣ API에서 신규 문제 불러오기 (매번 새로운 5문제 로드)
+// ======================
+async function fetchNewQuestions() {
+  try {
+    // Vercel 서버리스 함수 경로
+    const res = await fetch("/api/quiz/today"); 
+    if (!res.ok) throw new Error("❌ API 불러오기 실패. 상태: " + res.status);
+    const newQuestions = await res.json();
+
+    // 🔸 URL 포맷 정리: today.js에서 순수한 URL을 제공하면, 여기서 ?width=400을 붙여 로드 안정성을 확보합니다.
+    const formatted = newQuestions.map(q => ({
+      ...q,
+      image: q.image 
+        ? `${q.image}?width=400`
+        : null 
+    }));
+
+    console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
+    return formatted; // 5문제 반환
+  } catch (err) {
+    console.error("🚨 API 로드 오류:", err);
+    // 퀴즈 작동을 막는 주요 원인이므로 에러 메시지 사용자에게 표시
+    alert(`🚨 퀴즈 로드 오류! 콘솔을 확인해주세요. (${err.message})`);
+    return []; 
+  }
+}
+
+// ======================
+// 4️⃣ 초기화 및 재시작 (API 호출 트리거)
+// ======================
+async function startNewQuizSet() {
+  quizData = await fetchNewQuestions();
+  currentQuiz = 0;
+  score = 0;
+
+  if (quizData.length > 0) {
+    loadQuiz();
+  } else {
+    // API 호출이 실패하면 이 메시지가 뜸
+    questionEl.textContent = "문제를 불러오는 데 실패했습니다. 콘솔(F12)을 확인하세요.";
+    imageEl.style.display = "none";
+    restartBtn.style.display = "inline";
+  }
+}
+
+async function initQuiz() {
+  await startNewQuizSet();
+}
+
+
+// ======================
+// 5️⃣ 퀴즈 로직 (이미지 로딩 안정성 보강)
+// ======================
 function loadQuiz() {
   clearInterval(timer);
   const person = quizData[currentQuiz];
   if (!person) return alert("문제가 충분하지 않아요!");
 
-  // ************* 🚨 수정해야 할 부분 시작 🚨 *************
-  // 1. 이미지 로드 실패 시 디버깅을 돕기 위해 onerror 로직 변경
+  // ************* 🚨 이미지 로딩 안정성 보강 부분 🚨 *************
+  // 이미지 로드 실패 시 디버깅 로그 추가 및 사용자 알림
   imageEl.onerror = function() {
     console.error(`⚠️ 이미지 로드 실패: ${person.name}. URL: ${this.src}`);
     alert(`⚠️ 이미지 로드 실패: ${person.name}. 콘솔(F12)을 확인해주세요.`);
     this.src = "";
   };
   
-  // 2. 렌더링 안정성을 위해 이미지 요소에 명시적 크기 할당
+  // 렌더링 안정성을 위한 명시적 크기 할당
   imageEl.style.width = '400px';
   imageEl.style.height = '400px'; 
-  // ************* 🚨 수정해야 할 부분 종료 🚨 *************
+  // ************* 🚨 보강 부분 종료 🚨 *************
   
   imageEl.src = person.image;
   questionEl.textContent = `힌트: ${person.hint}`;
   inputEl.value = "";
   resultEl.textContent = "";
   startTimer(15);
-  
+
+  imageEl.style.display = "block";
+  questionEl.style.display = "block";
+  inputEl.style.display = "inline";
+  submitBtn.style.display = "inline";
+  timerEl.style.display = "block";
+  restartBtn.style.display = "none";
+}
+
 function startTimer(seconds) {
   let timeLeft = seconds;
   timerEl.textContent = `⏰ 남은 시간: ${timeLeft}초`;
@@ -145,7 +148,6 @@ function showResults() {
   restartBtn.style.display = "inline";
 }
 
-// *수정*: 재시작 버튼 클릭 시 API 호출 및 새로운 퀴즈 세트 시작
 restartBtn.addEventListener("click", startNewQuizSet);
 
 window.addEventListener("load", initQuiz);
