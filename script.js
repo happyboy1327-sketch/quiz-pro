@@ -32,15 +32,15 @@ async function fetchNewQuestions() {
         // ************** 🚨 최종 수정된 부분 🚨 **************
         image: q.image 
           ? (
-              // 1. URL이 HTTPS로 시작하는지 확인 (대부분의 이미지 로드 실패는 보안 정책 때문)
-              // 2. 만약 그렇지 않다면 HTTPS를 추가하고, 마지막에 ?width=400을 붙여서 안정적인 로딩을 유도합니다.
-              // 3. q.image가 null 또는 undefined가 아닐 때만 처리합니다.
-              q.image.startsWith('http') 
-                ? `${q.image}?width=400` // 이미 http/https가 있으면 그대로 사용
-                : `https://${q.image}?width=400` // 없으면 https를 강제로 추가
+              // 로컬 경로(/img/...)로 시작하는지 확인합니다.
+              q.image.startsWith('/img/')
+              ? q.image // 로컬 경로는 그대로 사용
+              // 외부 이미지인 경우에만 https:// 접두사 및 ?width=400 파라미터를 붙여줍니다.
+              : `${q.image.startsWith('http') ? q.image : `https://${q.image}`}?width=400`
             )
-          : null 
+        : null 
       // ************** 🚨 최종 수정된 부분 종료 🚨 **************
+    }));
     }));
 
     console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
