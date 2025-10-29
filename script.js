@@ -26,13 +26,21 @@ async function fetchNewQuestions() {
     const res = await fetch("/api/quiz/today"); 
     if (!res.ok) throw new Error("❌ API 불러오기 실패. 상태: " + res.status);
     const newQuestions = await res.json();
-
-    // 🔸 URL 포맷 정리: today.js에서 순수한 URL을 제공하면, 여기서 ?width=400을 붙여 로드 안정성을 확보합니다.
-    const formatted = newQuestions.map(q => ({
-      ...q,
-      image: q.image 
-        ? `${q.image}?width=400`
-        : null 
+      // 🔸 URL 포맷 정리
+      const formatted = newQuestions.map(q => ({
+        ...q,
+        // ************** 🚨 최종 수정된 부분 🚨 **************
+        image: q.image 
+          ? (
+              // 1. URL이 HTTPS로 시작하는지 확인 (대부분의 이미지 로드 실패는 보안 정책 때문)
+              // 2. 만약 그렇지 않다면 HTTPS를 추가하고, 마지막에 ?width=400을 붙여서 안정적인 로딩을 유도합니다.
+              // 3. q.image가 null 또는 undefined가 아닐 때만 처리합니다.
+              q.image.startsWith('http') 
+                ? `${q.image}?width=400` // 이미 http/https가 있으면 그대로 사용
+                : `https://${q.image}?width=400` // 없으면 https를 강제로 추가
+            )
+          : null 
+      // ************** 🚨 최종 수정된 부분 종료 🚨 **************
     }));
 
     console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
