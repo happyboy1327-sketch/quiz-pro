@@ -29,18 +29,22 @@ async function fetchNewQuestions() {
       // 🔸 URL 포맷 정리
       const formatted = newQuestions.map(q => ({
         ...q,
-        // ************** 🚨 최종 수정된 부분 🚨 **************
-        image: q.image 
-          ? (
-              // 로컬 경로(/img/...)로 시작하는지 확인합니다.
-              q.image.startsWith('/img/')
+      // ************* 🚨 이미지 URL 처리 로직 최종 수정 🚨 *************
+      image: q.image 
+        ? (
+            // 1. URL이 HTTP 또는 HTTPS로 시작하는지 확인 (외부 이미지)
+            q.image.startsWith('http') 
+            ? `${q.image}?width=400` // 외부 이미지는 ?width=400 추가
+            
+            // 2. URL이 슬래시(/)로 시작하는지 확인 (로컬 정적 파일)
+            : q.image.startsWith('/')
               ? q.image // 로컬 경로는 그대로 사용
-              // 외부 이미지인 경우에만 https:// 접두사 및 ?width=400 파라미터를 붙여줍니다.
-              : `${q.image.startsWith('http') ? q.image : `https://${q.image}`}?width=400`
-            )
+            
+            // 3. 기타 예외 상황은 HTTPS를 강제하고 ?width=400 추가
+            : `https://${q.image}?width=400`
+          )
         : null 
-      // ************** 🚨 최종 수정된 부분 종료 🚨 **************
-    }));
+      // ************* 🚨 수정된 부분 종료 🚨 *************
     }));
 
     console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
