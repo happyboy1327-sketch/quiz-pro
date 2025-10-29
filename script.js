@@ -81,24 +81,25 @@ function loadQuiz() {
   const person = quizData[currentQuiz];
   if (!person) return alert("문제가 충분하지 않아요!");
 
+  // ************* 🚨 수정해야 할 부분 시작 🚨 *************
+  // 1. 이미지 로드 실패 시 디버깅을 돕기 위해 onerror 로직 변경
   imageEl.onerror = function() {
-    alert(`⚠️ 이미지 로드 실패: ${person.name}`);
+    console.error(`⚠️ 이미지 로드 실패: ${person.name}. URL: ${this.src}`);
+    alert(`⚠️ 이미지 로드 실패: ${person.name}. 콘솔(F12)을 확인해주세요.`);
     this.src = "";
   };
+  
+  // 2. 렌더링 안정성을 위해 이미지 요소에 명시적 크기 할당
+  imageEl.style.width = '400px';
+  imageEl.style.height = '400px'; 
+  // ************* 🚨 수정해야 할 부분 종료 🚨 *************
+  
   imageEl.src = person.image;
   questionEl.textContent = `힌트: ${person.hint}`;
   inputEl.value = "";
   resultEl.textContent = "";
   startTimer(15);
-
-  imageEl.style.display = "block";
-  questionEl.style.display = "block";
-  inputEl.style.display = "inline";
-  submitBtn.style.display = "inline";
-  timerEl.style.display = "block";
-  restartBtn.style.display = "none";
-}
-
+  
 function startTimer(seconds) {
   let timeLeft = seconds;
   timerEl.textContent = `⏰ 남은 시간: ${timeLeft}초`;
