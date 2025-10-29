@@ -9,7 +9,7 @@
 // ======================
 async function fetchNewQuestions() {
   try {
-    const res = await fetch("/api/quiz/today.js");
+    const res = await fetch("/api/quiz/today");
     if (!res.ok) throw new Error("❌ API 불러오기 실패");
     const newQuestions = await res.json();
 
