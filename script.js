@@ -3,9 +3,9 @@
 // ======================
 // let candidates = JSON.parse(localStorage.getItem("candidates")) || []; // 제거// ======================
 
+// ======================
 // 2️⃣ API에서 신규 문제 불러오기
 // ======================
-// *수정*: 매 호출마다 5문제를 가져오도록 lastUpdate, candidates, localStorage 로직 제거
 async function fetchNewQuestions() {
   try {
     const res = await fetch("/api/quiz/today");
@@ -15,9 +15,13 @@ async function fetchNewQuestions() {
     // 🔸 URL 포맷 정리
     const formatted = newQuestions.map(q => ({
       ...q,
-      image: q.image.startsWith("https://commons.wikimedia.org/wiki/Special:FilePath/")
-        ? q.image
-        : `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(q.image)}?width=400`
+      // *수정*: URL 포맷을 단순화하고, 혹시 모를 URL 인코딩 문제를 해결
+      // today.js에서 이미 완전한 URL(width=400 포함)을 제공하고 있으므로, 
+      // 추가적인 URL 조작 없이 그대로 사용합니다.
+      // 만약 image 속성이 비어있을 경우를 대비한 기본 로직만 유지합니다.
+      image: q.image 
+        ? q.image 
+        : `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(q.name)}.jpg?width=400`
     }));
 
     console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
@@ -27,7 +31,6 @@ async function fetchNewQuestions() {
     return []; // 오류 시 빈 배열 반환
   }
 }
-
 // ======================
 // 3️⃣ 무작위 5문제 추출 (제거)
 // ======================
