@@ -1,6 +1,11 @@
 {
   "name": "my-quiz-project",
   "version": "1.0.0",
+  "type": "module", 
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {}
   "description": "",
   "main": "script.js",
   "scripts": {
