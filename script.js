@@ -20,7 +20,7 @@ async function fetchNewQuestions() {
       // 클라이언트에서 다시 ?width=400을 붙여서 썸네일 로딩을 시도합니다.
       // encodeURIComponent는 파일 경로 전체가 아닌 파일명만 필요할 때 사용하므로 제거합니다.
       image: q.image 
-        ? `${q.image}?width=400`
+        ? `${q.image}`
         : null // 이미지가 없다면 null로 처리
     }));
 
