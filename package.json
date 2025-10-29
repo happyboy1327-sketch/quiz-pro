@@ -1,16 +1,14 @@
 {
   "name": "my-quiz-project",
   "version": "1.0.0",
-  "type": "module", 
+  "type": "module",
   "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {}
-  "description": "",
-  "main": "script.js",
-  "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "dependencies": {},
+  "description": "",
+  "main": "script.js",
   "keywords": [],
   "author": "",
   "license": "ISC"
