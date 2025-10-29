@@ -4,6 +4,7 @@
 // let candidates = JSON.parse(localStorage.getItem("candidates")) || []; // 제거// ======================
 
 // ======================
+// ======================
 // 2️⃣ API에서 신규 문제 불러오기
 // ======================
 async function fetchNewQuestions() {
@@ -15,13 +16,12 @@ async function fetchNewQuestions() {
     // 🔸 URL 포맷 정리
     const formatted = newQuestions.map(q => ({
       ...q,
-      // *수정*: URL 포맷을 단순화하고, 혹시 모를 URL 인코딩 문제를 해결
-      // today.js에서 이미 완전한 URL(width=400 포함)을 제공하고 있으므로, 
-      // 추가적인 URL 조작 없이 그대로 사용합니다.
-      // 만약 image 속성이 비어있을 경우를 대비한 기본 로직만 유지합니다.
+      // *수정*: today.js에서 ?width=400을 제거했으므로, 
+      // 클라이언트에서 다시 ?width=400을 붙여서 썸네일 로딩을 시도합니다.
+      // encodeURIComponent는 파일 경로 전체가 아닌 파일명만 필요할 때 사용하므로 제거합니다.
       image: q.image 
-        ? q.image 
-        : `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(q.name)}.jpg?width=400`
+        ? `${q.image}?width=400`
+        : null // 이미지가 없다면 null로 처리
     }));
 
     console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
