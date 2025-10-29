@@ -15,7 +15,7 @@ export default function handler(req, res) {
     { name: "피카소", hint: "입체파 화가", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Pablo_picasso_1.jpg" },
     { name: "레오나르도 다 빈치", hint: "모나리자 화가", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Leonardo_self.jpg" },
     { name: "나폴레옹", hint: "프랑스 황제", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Jacques-Louis_David_-_Napoleon_in_his_Study_-_Google_Art_Project_2.jpg" },
-    { name: "신사임당", hint: "율곡 이이의 어머니", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Shin_Saimdang.jpg" },
+    { name: "신사임당", hint: "율곡 이이의 어머니", image: "img/Shin_Saimdang.jpg" },
     { name: "안중근", hint: "이토 히로부미 저격 의사", image: "https://commons.wikimedia.org/wiki/Special:FilePath/An_Jung-geun.jpg" },
     { name: "소크라테스", hint: "철학의 아버지", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Socrates_Louvre.jpg" },
     { name: "아리스토텔레스", hint: "플라톤의 제자", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Aristotle_Altemps_Inv8575.jpg" },
@@ -44,5 +44,6 @@ export default function handler(req, res) {
 
   res.status(200).json(selected);
 }
+
 
 
