@@ -23,20 +23,19 @@ export default function handler(req, res) {
   ];
 
   // ⚙️ 이미 사용한 문제 제외
-  const availableIndices = allCandidates
-    .map((_, i) => i)
-    .filter(i => !usedIndices.has(i));
+  const allIndices = allCandidates.map((_, i) => i); // 전체 인덱스
+  const availableIndices = allIndices.filter(i => !usedIndices.has(i)); // 사용하지 않은 인덱스
 
-  // ⚠️ 후보가 5개 미만이면 초기화
+  // ⚠️ 후보가 5개 미만이면 초기화 (최소 5문제는 제공하도록 보장)
   if (availableIndices.length < 5) {
     usedIndices.clear();
+    // 초기화 후, availableIndices를 전체 인덱스로 다시 설정
+    availableIndices.splice(0, availableIndices.length, ...allIndices);
   }
 
   // 새롭게 5문제 랜덤 선택
   const selected = [];
-  const temp = availableIndices.length < allCandidates.length
-    ? availableIndices
-    : allCandidates.map((_, i) => i);
+  const temp = [...availableIndices]; 
 
   while (selected.length < 5 && temp.length > 0) {
     const randIndex = Math.floor(Math.random() * temp.length);
