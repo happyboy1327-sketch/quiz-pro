@@ -1,5 +1,3 @@
-import fetch from "node-fetch"; // Vercel 환경에서 필요할 수 있음
-
 var fetch = require("node-fetch"); // Node 환경용
 
 console.log("✅ 최신 API 코드 로드됨");
@@ -86,6 +84,7 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: "퀴즈 자동 생성 중 서버 오류 발생", details: error.message });
   }
 };
+
 
 
 
