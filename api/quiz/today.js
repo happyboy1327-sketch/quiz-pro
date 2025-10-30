@@ -1,10 +1,8 @@
-var fetch = require("node-fetch"); // Node 환경용
-
 console.log("✅ 최신 API 코드 로드됨");
 
-module.exports = async function handler(req, res) {
+module.exports = function handler(req, res) {
   try {
-    // 전체 후보군 (기존 그대로 유지)
+    // 전체 후보군
     var allCandidates = [
       { name: "이순신", hint: "임진왜란 장군", image: "/img/General-soonsin.jpg" },
       { name: "세종대왕", hint: "한글 창제", image: "https://commons.wikimedia.org/wiki/Special:FilePath/King_Sejong_the_Great.jpg" },
@@ -23,68 +21,25 @@ module.exports = async function handler(req, res) {
       { name: "뉴턴", hint: "만유인력 법칙 발견", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Portrait_of_Sir_Isaac_Newton,_1689_(brightened).jpg" }
     ];
 
-    // 1️⃣ 이미지 URL 실제 접속 가능한지 확인
-    var validCandidates = [];
-    for (var i = 0; i < allCandidates.length; i++) {
-      try {
-        var headCheck = await fetch(allCandidates[i].image, { method: "HEAD" });
-        if (headCheck.ok && headCheck.headers.get("content-type")?.startsWith("image")) {
-          validCandidates.push(allCandidates[i]);
-        }
-      } catch (e) {
-        // 실패한 URL은 무시
-      }
-    }
-
-    // 2️⃣ 5개 랜덤 선택
+    // 랜덤 5문제 선택
+    var temp = allCandidates.slice(); // 원본 복사
     var selected = [];
-    var temp = validCandidates.slice();
     while (selected.length < 5 && temp.length > 0) {
       var randIndex = Math.floor(Math.random() * temp.length);
       selected.push(temp.splice(randIndex, 1)[0]);
     }
 
-    // 3️⃣ 자동 한글 번역 (Google Translate API)
-    var translated = [];
-    for (var j = 0; j < selected.length; j++) {
-      var quiz = selected[j];
-      try {
-        var translateNameResp = await fetch(
-          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q=" +
-          encodeURIComponent(quiz.name)
-        );
-        var nameData = await translateNameResp.json();
-        var translatedName = nameData?.[0]?.[0]?.[0] || quiz.name;
-
-        var translateHintResp = await fetch(
-          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q=" +
-          encodeURIComponent(quiz.hint)
-        );
-        var hintData = await translateHintResp.json();
-        var translatedHint = hintData?.[0]?.[0]?.[0] || quiz.hint;
-
-        translated.push({
-          name: translatedName,
-          hint: translatedHint,
-          image: quiz.image
-        });
-      } catch (e) {
-        translated.push(quiz); // 번역 실패 시 원본 유지
-      }
-    }
-
-    // 4️⃣ 캐시 방지
+    // 캐시 방지
     res.setHeader("Cache-Control", "no-store");
 
-    // 5️⃣ 최종 결과 반환
-    res.status(200).json(translated);
+    // 결과 반환
+    res.status(200).json(selected);
 
-  } catch (error) {
-    console.error("❌ 내부 서버 오류:", error);
-    res.status(500).json({ error: "퀴즈 자동 생성 중 서버 오류 발생", details: error.message });
+  } catch (err) {
+    console.error("❌ 서버 오류:", err);
+    res.status(500).json({ error: "서버 내부 오류 발생" });
   }
 };
-
 
 
 
