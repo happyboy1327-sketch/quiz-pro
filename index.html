@@ -2,56 +2,48 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>랜덤 퀴즈</title>
+  <title>인물 퀴즈</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .quiz-item { margin-bottom: 30px; }
-    img { max-width: 200px; display: block; margin-top: 5px; }
+  body {
+    font-family: Arial, sans-serif;
+    padding: 30px;
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+  }
+
+  #quiz-container {
+    text-align: center; /* 내부 텍스트 중앙 */
+    width: 100%;
+    max-width: 500px;
+  }
+
+  #image {
+    max-width: 300px;
+    height: auto;
+    margin: 20px auto; /* 세로 간격 + 가로 중앙 */
+    display: block;
+  }
+
+  #question { font-size: 1.2em; margin: 10px 0; }
+  #answer { padding: 5px; font-size: 1em; }
+  #submit, #restart { padding: 5px 10px; font-size: 1em; margin-left: 5px; }
+  #timer { margin: 10px 0; font-weight: bold; }
+  #result { margin: 10px 0; font-size: 1.1em; color: #d00; }
   </style>
 </head>
 <body>
-  <h1>오늘의 랜덤 인물 퀴즈</h1>
-  <button id="reload-btn">새 문제 불러오기</button>
-  <div id="quiz-container"></div>
-
-  <script>
-    async function fetchQuiz() {
-      try {
-        const res = await fetch("/api/quiz/today");
-        if (!res.ok) throw new Error("API 실패: " + res.status);
-        const data = await res.json();
-        return data;
-      } catch (err) {
-        console.error("🚨 API 오류:", err);
-        return [];
-      }
-    }
-
-    async function displayQuiz() {
-      const container = document.getElementById("quiz-container");
-      container.innerHTML = "<p>로딩 중...</p>";
-      const quizzes = await fetchQuiz();
-
-      if (quizzes.length === 0) {
-        container.innerHTML = "<p>퀴즈를 불러오지 못했습니다.</p>";
-        return;
-      }
-
-      container.innerHTML = "";
-      quizzes.forEach((q, idx) => {
-        const div = document.createElement("div");
-        div.className = "quiz-item";
-        div.innerHTML = `
-          <h3>문제 ${idx + 1}: ${q.name}</h3>
-          <p>힌트: ${q.hint}</p>
-          <img src="${q.image}" alt="${q.name}">
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    document.getElementById("reload-btn").addEventListener("click", displayQuiz);
-    window.addEventListener("DOMContentLoaded", displayQuiz);
-  </script>
+  <div id="main-container">
+    <h1>인물 퀴즈</h1>
+    <div id="quiz-container">
+      <img id="image" src="" alt="인물 이미지">
+      <div id="question"></div>
+      <input type="text" id="answer" placeholder="정답 입력">
+      <button id="submit">제출</button>
+      <button id="restart" style="display:none;">다시 시작</button>
+      <div id="timer"></div>
+      <div id="result"></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
