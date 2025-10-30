@@ -2,7 +2,7 @@ console.log("✅ 최신 API 코드 로드됨");
 
 module.exports = function handler(req, res) {
   try {
-    // 전체 후보군
+    // 전체 후보군 그대로 유지
     var allCandidates = [
       { name: "이순신", hint: "임진왜란 장군", image: "/img/General-soonsin.jpg" },
       { name: "세종대왕", hint: "한글 창제", image: "https://commons.wikimedia.org/wiki/Special:FilePath/King_Sejong_the_Great.jpg" },
@@ -40,8 +40,5 @@ module.exports = function handler(req, res) {
     res.status(500).json({ error: "서버 내부 오류 발생" });
   }
 };
-
-
-
 
 
