@@ -1,42 +1,165 @@
-console.log("✅ 스크립트 로드됨");
+// ======================
+// 퀴즈 상태 변수
+// ======================
+let quizData = [];
+let currentQuiz = 0;
+let score = 0;
+let timer;
 
-// 퀴즈 5문제를 API에서 불러오기
+// ======================
+// DOM 요소
+// ======================
+const imageEl = document.getElementById("image");
+const questionEl = document.getElementById("question");
+const inputEl = document.getElementById("answer");
+const submitBtn = document.getElementById("submit");
+const resultEl = document.getElementById("result");
+const timerEl = document.getElementById("timer");
+const restartBtn = document.getElementById("restart");
+
+// ======================
+// 2️⃣ API에서 신규 문제 불러오기 (매번 새로운 5문제 로드)
+// ======================
 async function fetchNewQuestions() {
   try {
-    const res = await fetch("/api/quiz/today");
-    if (!res.ok) throw new Error("API 요청 실패: " + res.status);
-    const data = await res.json();
-    return data;
+    // Vercel 서버리스 함수 경로
+    const res = await fetch("/api/quiz/today"); 
+    if (!res.ok) throw new Error("❌ API 불러오기 실패. 상태: " + res.status);
+    const newQuestions = await res.json();
+      // 🔸 URL 포맷 정리
+      const formatted = newQuestions.map(q => ({
+        ...q,
+      // ************* 🚨 이미지 URL 처리 로직 최종 수정 🚨 *************
+      image: q.image 
+        ? (
+            // 1. URL이 HTTP 또는 HTTPS로 시작하는지 확인 (외부 이미지)
+            q.image.startsWith('http') 
+            ? `${q.image}?width=400` // 외부 이미지는 ?width=400 추가
+            
+            // 2. URL이 슬래시(/)로 시작하는지 확인 (로컬 정적 파일)
+            : q.image.startsWith('/')
+              ? q.image // 로컬 경로는 그대로 사용
+            
+            // 3. 기타 예외 상황은 HTTPS를 강제하고 ?width=400 추가
+            : `https://${q.image}?width=400`
+          )
+        : null 
+      // ************* 🚨 수정된 부분 종료 🚨 *************
+    }));
+
+    console.log(`✨ 5개의 새 문제가 API로부터 로드되었습니다.`);
+    return formatted; // 5문제 반환
   } catch (err) {
-    console.error("🚨 API 불러오기 오류:", err);
-    return [];
+    console.error("🚨 API 로드 오류:", err);
+    // 퀴즈 작동을 막는 주요 원인이므로 에러 메시지 사용자에게 표시
+    alert(`🚨 퀴즈 로드 오류! 콘솔을 확인해주세요. (${err.message})`);
+    return []; 
   }
 }
 
-// 퀴즈 화면에 표시
-async function displayQuiz() {
-  const container = document.getElementById("quiz-container");
-  container.innerHTML = "<p>로딩 중...</p>";
+// ======================
+// 4️⃣ 초기화 및 재시작 (API 호출 트리거)
+// ======================
+async function startNewQuizSet() {
+  quizData = await fetchNewQuestions();
+  currentQuiz = 0;
+  score = 0;
 
-  const questions = await fetchNewQuestions();
-
-  if (questions.length === 0) {
-    container.innerHTML = "<p>퀴즈를 불러오지 못했습니다.</p>";
-    return;
+  if (quizData.length > 0) {
+    loadQuiz();
+  } else {
+    // API 호출이 실패하면 이 메시지가 뜸
+    questionEl.textContent = "문제를 불러오는 데 실패했습니다. 콘솔(F12)을 확인하세요.";
+    imageEl.style.display = "none";
+    restartBtn.style.display = "inline";
   }
-
-  container.innerHTML = ""; // 초기화
-  questions.forEach((q, index) => {
-    const div = document.createElement("div");
-    div.className = "quiz-item";
-    div.innerHTML = `
-      <h3>문제 ${index + 1}: ${q.name}</h3>
-      <p>힌트: ${q.hint}</p>
-      <img src="${q.image}" alt="${q.name}" style="max-width:200px; display:block; margin-bottom:20px;">
-    `;
-    container.appendChild(div);
-  });
 }
 
-// 페이지 로드 시 실행
-window.addEventListener("DOMContentLoaded", displayQuiz);
+async function initQuiz() {
+  await startNewQuizSet();
+}
+
+
+// ======================
+// 5️⃣ 퀴즈 로직 (이미지 로딩 안정성 보강)
+// ======================
+function loadQuiz() {
+  clearInterval(timer);
+  const person = quizData[currentQuiz];
+  if (!person) return alert("문제가 충분하지 않아요!");
+
+  // ************* 🚨 이미지 로딩 안정성 보강 부분 🚨 *************
+  // 이미지 로드 실패 시 디버깅 로그 추가 및 사용자 알림
+  imageEl.onerror = function() {
+    console.error(`⚠️ 이미지 로드 실패: ${person.name}. URL: ${this.src}`);
+    alert(`⚠️ 이미지 로드 실패: ${person.name}. 콘솔(F12)을 확인해주세요.`);
+    this.src = "";
+  };
+  
+  // 렌더링 안정성을 위한 명시적 크기 할당
+  imageEl.style.width = '400px';
+  imageEl.style.height = '400px'; 
+  // ************* 🚨 보강 부분 종료 🚨 *************
+  
+  imageEl.src = person.image;
+  questionEl.textContent = `힌트: ${person.hint}`;
+  inputEl.value = "";
+  resultEl.textContent = "";
+  startTimer(15);
+
+  imageEl.style.display = "block";
+  questionEl.style.display = "block";
+  inputEl.style.display = "inline";
+  submitBtn.style.display = "inline";
+  timerEl.style.display = "block";
+  restartBtn.style.display = "none";
+}
+
+function startTimer(seconds) {
+  let timeLeft = seconds;
+  timerEl.textContent = `⏰ 남은 시간: ${timeLeft}초`;
+  timer = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = `⏰ 남은 시간: ${timeLeft}초`;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      checkAnswer();
+    }
+  }, 1000);
+}
+
+submitBtn.addEventListener("click", checkAnswer);
+
+function checkAnswer() {
+  clearInterval(timer);
+  const answer = inputEl.value.trim();
+  const correct = quizData[currentQuiz].name;
+
+  if (answer === correct) {
+    resultEl.textContent = "💖 정답이에요!";
+    score++;
+  } else {
+    resultEl.textContent = `❌ 오답이에요! 정답은 ${correct}`;
+  }
+
+  currentQuiz++;
+  if (currentQuiz < quizData.length) {
+    setTimeout(loadQuiz, 2000);
+  } else {
+    setTimeout(showResults, 2000);
+  }
+}
+
+function showResults() {
+  questionEl.textContent = `퀴즈 종료! 점수: ${score}/${quizData.length} 💕`;
+  imageEl.style.display = "none";
+  inputEl.style.display = "none";
+  submitBtn.style.display = "none";
+  timerEl.style.display = "none";
+  resultEl.style.display = "block";
+  restartBtn.style.display = "inline";
+}
+
+restartBtn.addEventListener("click", startNewQuizSet);
+
+window.addEventListener("load", initQuiz);
